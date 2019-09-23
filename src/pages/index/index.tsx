@@ -1,9 +1,9 @@
 import { ComponentClass } from 'react'
+import classnames from 'classnames'
 import Taro, { Component, Config } from '@tarojs/taro'
-import { View, Button, Text } from '@tarojs/components'
+import { View, Text, Input } from '@tarojs/components'
 import { connect } from '@tarojs/redux'
-
-import { add, minus, asyncAdd } from '../../actions/counter'
+import * as actions from '../../actions/timeline'
 
 import './index.scss'
 
@@ -18,40 +18,31 @@ import './index.scss'
 // #endregion
 
 type PageStateProps = {
-  counter: {
-    num: number
-  }
+  recorded: string[],
+  contentMap: any,
 }
 
 type PageDispatchProps = {
-  add: () => void
-  dec: () => void
-  asyncAdd: () => any
+  dispatchRecord: (payload: any) => void;
 }
 
 type PageOwnProps = {}
 
-type PageState = {}
+type PageState = {
+  timeline: {[key: string]: any}
+  showEditor: undefined | string;
+  input: string;
+}
 
 type IProps = PageStateProps & PageDispatchProps & PageOwnProps
 
 interface Index {
   props: IProps;
+  state: PageState;
 }
 
-@connect(({ counter }) => ({
-  counter
-}), (dispatch) => ({
-  add () {
-    dispatch(add())
-  },
-  dec () {
-    dispatch(minus())
-  },
-  asyncAdd () {
-    dispatch(asyncAdd())
-  }
-}))
+@connect(state => state.timeline, actions)
+
 class Index extends Component {
 
     /**
@@ -62,7 +53,21 @@ class Index extends Component {
    * 提示和声明 navigationBarTextStyle: 'black' | 'white' 类型冲突, 需要显示声明类型
    */
     config: Config = {
-    navigationBarTitleText: '首页'
+    navigationBarTitleText: 'Timeline'
+  }
+
+  constructor (props) {
+    super(props);
+    const { recorded, contentMap } = this.props;
+    let timeline = {};
+    for (let i = 5; i < 24; i++) {
+      timeline[i] = recorded.includes(String(i)) ? contentMap[i] : 0;
+    }
+    this.state = {
+      timeline: timeline,
+      showEditor: undefined,
+      input: '',
+    };
   }
 
   componentWillReceiveProps (nextProps) {
@@ -75,14 +80,70 @@ class Index extends Component {
 
   componentDidHide () { }
 
+  handleInputChange = (e: any) => {
+    this.setState({
+      input: e.target.value,
+    });
+  }
+  
+  handleInputBlur = () => {
+    const { showEditor, input } = this.state;
+    this.props.dispatchRecord({time: showEditor, content: input});
+    this.setState({
+      input: '',
+      showEditor: undefined,
+    });
+  }
+
+  handleColumeClick = (index: string) => {
+    this.setState({
+      showEditor: index,
+      input: this.props.contentMap[index] || '',
+    })
+  }
+
   render () {
+    const { timeline, showEditor, input } = this.state;
+    const { recorded, contentMap } = this.props;
     return (
       <View className='index'>
-        <Button className='add_btn' onClick={this.props.add}>+</Button>
-        <Button className='dec_btn' onClick={this.props.dec}>-</Button>
-        <Button className='dec_btn' onClick={this.props.asyncAdd}>async</Button>
-        <View><Text>{this.props.counter.num}</Text></View>
-        <View><Text>Hello, World</Text></View>
+        <View className='titleBar'>
+          <View className='at-icon at-icon-menu'></View>
+          <View className='title'>
+            <Text>2019-09-23</Text>
+            <View className='at-icon at-icon-chevron-down title__filter'></View>
+          </View>
+        </View>
+        <View className='content'>
+            {
+              Object.keys(timeline).map(i => {
+                return(
+                  <View key={i}
+                    className={classnames('listItem', {
+                      ['listItem--show']: showEditor === i,
+                    })}
+                    onClick={() => this.handleColumeClick(i)}
+                  >
+                    <Text className='listItem__time'>{Number(i) < 10 ? `0${i}:00` : `${i}:00`}</Text>
+                    {
+                      recorded.includes(i) && showEditor !== i && 
+                        <View className='listItem__content'>
+                          <Text>{contentMap[i]}</Text>
+                        </View>
+                        
+                    }
+                    <Input
+                      className='listItem__input'
+                      value={input}
+                      placeholder='markdown supported'
+                      onInput={this.handleInputChange}
+                      onBlur={this.handleInputBlur}
+                    />
+                  </View>
+                )
+              })
+            }
+          </View>
       </View>
     )
   }
