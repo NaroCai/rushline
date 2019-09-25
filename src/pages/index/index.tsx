@@ -1,8 +1,9 @@
 import { ComponentClass } from 'react'
 import classnames from 'classnames'
 import Taro, { Component, Config } from '@tarojs/taro'
-import { View, Text, Input } from '@tarojs/components'
+import { View, Text } from '@tarojs/components'
 import { connect } from '@tarojs/redux'
+import { AtTextarea } from 'taro-ui'
 import * as actions from '../../actions/timeline'
 
 import './index.scss'
@@ -64,7 +65,7 @@ class Index extends Component {
       timeline[i] = recorded.includes(String(i)) ? contentMap[i] : 0;
     }
     this.state = {
-      timeline: timeline,
+      timeline,
       showEditor: undefined,
       input: '',
     };
@@ -74,7 +75,8 @@ class Index extends Component {
     console.log(this.props, nextProps)
   }
 
-  componentWillUnmount () { }
+  componentWillUnmount () {
+  }
 
   componentDidShow () { }
 
@@ -86,9 +88,10 @@ class Index extends Component {
     });
   }
   
-  handleInputBlur = () => {
-    const { showEditor, input } = this.state;
-    this.props.dispatchRecord({time: showEditor, content: input});
+  handleInputBlur = (e: any) => {
+    const { showEditor } = this.state;
+    if (showEditor) { return; }
+    this.props.dispatchRecord({time: showEditor, content: e.target.value});
     this.setState({
       input: '',
       showEditor: undefined,
@@ -96,6 +99,11 @@ class Index extends Component {
   }
 
   handleColumeClick = (index: string) => {
+    const { showEditor, input } = this.state;
+    if (showEditor === index) { return; }
+    if (showEditor) {
+      this.props.dispatchRecord({time: showEditor, content: input});
+    }
     this.setState({
       showEditor: index,
       input: this.props.contentMap[index] || '',
@@ -132,13 +140,18 @@ class Index extends Component {
                         </View>
                         
                     }
-                    <Input
-                      className='listItem__input'
-                      value={input}
-                      placeholder='markdown supported'
-                      onInput={this.handleInputChange}
-                      onBlur={this.handleInputBlur}
-                    />
+                    <View className='listItem__inputContainer'>
+                      <AtTextarea
+                        showConfirmBar
+                        count={false}
+                        className='listItem__input'
+                        value={input}
+                        onChange={this.handleInputChange}
+                        onConfirm={this.handleInputBlur}
+                        onBlur={this.handleInputBlur}
+                        placeholder='markdown supported'
+                      />
+                    </View>
                   </View>
                 )
               })
