@@ -88,10 +88,8 @@ class Index extends Component {
     });
   }
   
-  handleInputBlur = (e: any) => {
-    const { showEditor } = this.state;
-    if (showEditor) { return; }
-    this.props.dispatchRecord({time: showEditor, content: e.target.value});
+  handleInputBlur = (e: any, index: string) => {
+    this.props.dispatchRecord({time: index, content: e.target.value});
     this.setState({
       input: '',
       showEditor: undefined,
@@ -99,11 +97,8 @@ class Index extends Component {
   }
 
   handleColumeClick = (index: string) => {
-    const { showEditor, input } = this.state;
-    if (showEditor === index) { return; }
-    if (showEditor) {
-      this.props.dispatchRecord({time: showEditor, content: input});
-    }
+    const { showEditor } = this.state;
+    if (showEditor) { return; }
     this.setState({
       showEditor: index,
       input: this.props.contentMap[index] || '',
@@ -147,8 +142,9 @@ class Index extends Component {
                         className='listItem__input'
                         value={input}
                         onChange={this.handleInputChange}
-                        onConfirm={this.handleInputBlur}
-                        onBlur={this.handleInputBlur}
+                        onConfirm={(e) => this.handleInputBlur(e, i)}
+                        onBlur={(e) => this.handleInputBlur(e, i)}
+                        focus={showEditor === i}
                         placeholder='markdown supported'
                       />
                     </View>
