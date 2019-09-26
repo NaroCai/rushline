@@ -2,6 +2,7 @@
   "extends": ["taro"],
   "rules": {
     "no-unused-vars": "off",
+    "import/prefer-default-export": false,
     "react/jsx-filename-extension": [1, { "extensions": [".js", ".jsx", ".tsx"] }],
     "react/sort-comp": false
   },

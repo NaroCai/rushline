@@ -5,8 +5,9 @@ import { View, Text } from '@tarojs/components'
 import { connect } from '@tarojs/redux'
 import { AtTextarea } from 'taro-ui'
 import * as actions from '../../actions/timeline'
-
 import './index.scss'
+// import { markdownParser } from '../../utils/md'
+import MardownContainer from '../../components/MardownContainer'
 
 // #region 书写注意
 //
@@ -71,6 +72,17 @@ class Index extends Component {
     };
   }
 
+  mdParser(content: string) {
+    const strArr = content.split('\n');
+    strArr.forEach(str => {
+      if (str.substr(0, 2) === '[]') {
+
+      } else {
+
+      }
+    });
+  }
+
   componentWillReceiveProps (nextProps) {
     console.log(this.props, nextProps)
   }
@@ -97,12 +109,18 @@ class Index extends Component {
   }
 
   handleColumeClick = (index: string) => {
+    // console.log('colume click');
     const { showEditor } = this.state;
     if (showEditor) { return; }
     this.setState({
       showEditor: index,
       input: this.props.contentMap[index] || '',
     })
+  }
+
+  handleTextClick = (e) => {
+    // e.stopPropagation();
+    // console.log('textClick');
   }
 
   render () {
@@ -130,9 +148,12 @@ class Index extends Component {
                     <Text className='listItem__time'>{Number(i) < 10 ? `0${i}:00` : `${i}:00`}</Text>
                     {
                       recorded.includes(i) && showEditor !== i && 
-                        <View className='listItem__content'>
-                          <Text>{contentMap[i]}</Text>
-                        </View>
+                        // <View className='listItem__content' onClick={this.handleTextClick}>
+                        //   {/* <Text>{markdownParser(contentMap[i])}</Text> */}
+                        //   {/* <RichText nodes={marked(contentMap[i])} className='richText'></RichText> */}
+                        //   <RichText nodes={markdownParser(contentMap[i])} className='richText'></RichText>
+                        // </View>
+                        <MardownContainer content={contentMap[i]} />
                         
                     }
                     <View className='listItem__inputContainer'>
